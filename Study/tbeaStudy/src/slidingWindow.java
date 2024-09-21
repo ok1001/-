@@ -12,10 +12,10 @@ import java.util.*;
 public class slidingWindow {
     public static void main(String[] args) {
         slidingWindowSoultion sliding = new slidingWindowSoultion();
-        int [] nums = {3,9,6};
-        int [] grumpy = {9930,9923,9983,9997,9934,9952,9945,9914,9985,9982,9970,9932,9985,9902,9975,9990,9922,9990,9994,9937,9996,9964,9943,9963,9911,9925,9935,9945,9933,9916,9930,9938,10000,9916,9911,9959,9957,9907,9913,9916,9993,9930,9975,9924,9988,9923,9910,9925,9977,9981,9927,9930,9927,9925,9923,9904,9928,9928,9986,9903,9985,9954,9938,9911,9952,9974,9926,9920,9972,9983,9973,9917,9995,9973,9977,9947,9936,9975,9954,9932,9964,9972,9935,9946,9966};
-        String s = "aabaaaacaabc";
-        sliding.takeCharacters(s, 2);
+        int [] nums = {4,-3,-7,0,-10};
+        int [] nums2 = {10};
+        String s = "WWWEQRQEWWQQQWQQQWEWEEWRRRRRWWQE";
+        sliding.findTheDistanceValue(nums, nums2, 69);
 
     }
 
@@ -760,7 +760,346 @@ class slidingWindowSoultion{
         return 0;
     }
 
+    public int balancedStringErro(String s) {
+        char[] data = {'Q', 'W', 'E', 'R'};
+        int n4 = s.length() / 4;
+        int[] QWER = new int[26];
+        HashMap<Character, Integer> map = new HashMap<>();
+        for (int i = 0; i < s.length(); i++){
+            int tmp = s.charAt(i) - 'A';
+            QWER[tmp]++;
+        }
+        for (char c :data){
+            int tmp = c - 'A';
+            QWER[tmp] -= n4;
+            if (QWER[tmp] > 0){
+                map.put(c,QWER[tmp]);
+            }
+        }
+        int countSize = map.size(), ans = 100005, l = 0;
+        boolean flag = false;
+        for (int i = 0; i < s.length(); i++){
+            if (!map.containsKey(s.charAt(i)))continue;
+            int tmp = map.get(s.charAt(i)) - 1;
+            map.put(s.charAt(i), tmp);
+            if (tmp < 0){
+                flag = true;
+            }
+            if (flag){
+                for (int count : map.values()){
+                    if (count > 0){
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag){
+                    while (l <= i &&(!map.containsKey(s.charAt(l)) || map.getOrDefault(s.charAt(l),0) < 0)){
+                        if (map.containsKey(s.charAt(l))){
+                            map.put(s.charAt(l), map.get(s.charAt(l)) + 1);
+                        }
+                        l++;
+                    }
+                    ans = Math.min(ans, i - l + 1);
+                }
+            }
+        }
+        return ans == 100005 ? 0 : ans;
+    }
+
+    public int balancedidx(char c){
+        return c - 'A';
+    }
+    public boolean balancedCheck(int[] cnt, int partial){
+        return cnt[balancedidx('Q')] <= partial &&
+                cnt[balancedidx('W')] <= partial &&
+                cnt[balancedidx('E')] <= partial &&
+                cnt[balancedidx('R')] <= partial;
+    }
+
     public int balancedString(String s) {
+        int [] cnt = new int[26];
+        for (int i = 0; i < s.length(); i++){
+            char c = s.charAt(i);
+            cnt[balancedidx(c)]++;
+        }
+        int partial = s.length() / 4;
+        int res = s.length();
+
+        if (balancedCheck(cnt, partial)){
+            return 0;
+        }
+
+        for (int l = 0, r = 0; l < s.length(); l++){
+            while (r < s.length() && !balancedCheck(cnt, partial)){
+                cnt[balancedidx(s.charAt(r))]--;
+                r++;
+            }
+            if (!balancedCheck(cnt, partial)){
+                break;
+            }
+            res = Math.min(res, r - l);
+            cnt[balancedidx(s.charAt(l))]++;
+        }
+        return res;
+    }
+
+    public int countCompleteSubarrays(int[] nums) {
+        HashSet<Integer> set = new HashSet<>();
+        for (int item : nums){
+            set.add(item);
+        }
+        int m = set.size();
+        HashMap<Integer, Integer> map = new HashMap<>();
+        int ans = 0, left = 0;
+        for (int v : nums){
+            map.merge(v, 1, Integer::sum);
+            while (map.size() == m){
+                int x = nums[left++];
+                if (map.merge(x, -1, Integer::sum) == 0){
+                    map.remove(x);
+                }
+            }ans+=left;
+        }
+        return ans;
+    }
+
+    public int numSubarrayProductLessThanK(int[] nums, int k) {
+        int res = 0, count = 1;
+        for (int i = 0; i < nums.length; i++){
+            for (int j = i; j < nums.length; j++){
+                count *= nums[j];
+                if (count >= k)break;
+                res++;
+            }
+            count = 1;
+        }
+        return res;
+    }
+
+    public int numberOfSubstrings(String s) {
+        HashSet<Character> keys = new HashSet<>();
+        int m = 3;
+        HashMap<Character, Integer> map = new HashMap<>();
+        int ans = 0, left = 0;
+        for (int i = 0; i < s.length(); i++){
+            map.merge(s.charAt(i), 1, Integer::sum);
+            while (map.size() == m){
+                char c = s.charAt(left++);
+                if (map.merge(c, -1, Integer::sum) == 0){
+                    map.remove(c);
+                }
+            }
+            ans+=left;
+        }
+        return ans;
+    }
+
+    public long countSubarrays(int[] nums, int k) {
+        int maxValue = 0, maxCount = 0, left = 0;
+        long res = 0;
+        for (int num : nums){
+            if (num > maxValue){
+                maxValue = num;
+            }
+        }
+        for (int num : nums) {
+            if (num == maxValue) {
+                maxCount++;
+            }
+            if (maxCount == k) {
+                while (nums[left++] != maxValue);
+                maxCount--;
+            }
+            res += left;
+        }
+        return res;
+    }
+
+    public long countSubarrays(int[] nums, long k) {
+        long res = 0, product = 0;
+        int left = 0, count = 0;
+        for (int i = 0; i < nums.length; i++){
+            product += nums[i];
+            count++;
+            if (product * count >= k){
+                while (product * count >= k){
+                    product -= nums[left++];
+                    count--;
+                }
+            }
+            res += count;
+        }
+        return res;
+    }
+
+    public long countGood(int[] nums, int k) {
+        if (nums == null || nums.length == 0 || k < 0) { // 处理边界条件
+            return 0;
+        }
+
+        HashMap<Integer, Integer> map = new HashMap<>();
+        long ans = 0;
+        int left = 0;
+        int totalPairs = 0; // 新增变量以跟踪总对数
+
+        for (int right = 0; right < nums.length; right++) {
+            int num = nums[right];
+            map.merge(num, 1, Integer::sum);
+
+            // 更新总对数
+            int count = map.get(num);
+            totalPairs += count * (count - 1) / 2 - (count - 1) * (count - 2) / 2;
+
+            while (totalPairs >= k && left <= right) {
+                int m = nums[left++];
+                if (map.merge(m, -1, Integer::sum) <= 0) {
+                    map.remove(m);
+                }
+                // 更新总对数
+                int newCount = map.getOrDefault(m, 0);
+                totalPairs -= (newCount + 1) * newCount / 2 - newCount * (newCount - 1) / 2;
+            }
+
+            ans += left; // 只有当总对数小于k时才累加
+        }
+        return ans;
+    }
+
+    public boolean isPalindrome(String s) {
+        int left = 0, right = s.length() - 1;
+        while (left < right){
+            while (left < right && !Character.isLetterOrDigit(s.charAt(left))){
+                left++;
+            }
+            while (left < right && !Character.isLetterOrDigit(s.charAt(left))){
+                right++;
+            }
+            if (left < right){
+                if (Character.toLowerCase(s.charAt(left)) != Character.toLowerCase(s.charAt(right))){
+                    return false;
+                }
+                left++;
+                right--;
+            }
+        }
+        return true;
+    }
+
+    public int minimumLength(String s) {
+        int n = s.length();
+        int left = 0, right = n - 1;
+        while (left <= right){
+            char c = s.charAt(left);
+            if (s.charAt(right) == s.charAt(left)){
+                while (s.charAt(right) == c){
+                    right--;
+                }
+                while (s.charAt(left) == c){
+                    left++;
+                }
+            }else {
+                return right - left + 1;
+
+            }
+        }
+        return 0;
+    }
+
+    public int minimumRefill(int[] plants, int capacityA, int capacityB) {
+        int left = 0, right = plants.length - 1, capleft = capacityA, capright = capacityB, res = 0;
+        while (left < right){
+            capleft -= plants[left];
+            capright -= plants[right];
+            if (capleft < 0){
+                res++;
+                capleft = capacityA - plants[left];
+            }
+            if (capright < 0){
+                res++;
+                capright = capacityB - plants[right];
+            }
+            left++;
+            right--;
+        }
+        if (left == right){
+            if (Math.max(capleft, capright) - plants[left] < 0)res++;
+        }
+        return res;
+    }
+
+    public int[] sortedSquares(int[] nums) {
+        int left = 0, n = nums.length, right = n - 1, cur =  n - 1;
+        int[] res = new int[n];
+        while (left <= right){
+            if (nums[left] * nums[left] >= nums[right] * nums[right]){
+                res[cur++] = nums[left] * nums[left++];
+            }else {
+                res[cur++] = nums[right] * nums[right--];
+            }
+        }
+        return res;
+    }
+    public int findDichotomy(int[] arr, int x) {
+        int left = 0, right = arr.length - 1, mid = (left + right) / 2;
+        while (left <= right){
+            mid  = (left + right) / 2;
+            if (arr[mid] == x)return mid;
+            else if (arr[mid] > x){
+                right = mid - 1;
+            }else {
+                left = mid + 1;
+            }
+        }
+        return mid;
+    }
+    public int maximumCount(int[] nums) {
+        int n = nums.length, left = 0, right = n - 1, mid = (left + right) / 2;
+        while (left < right){
+            mid = (left + right) / 2;
+            if (nums[mid] == 0)break;
+            if (nums[mid] < 0){
+                left = mid + 1;
+            }else {
+                right = mid - 1;
+            }
+        }
+        if (mid < 0 || mid >= nums.length)return n;
+        left = right = (right +left) / 2;
+        while (left >= 0 && nums[left] >= 0){
+            left--;
+        }
+        while (right < n && nums[right] <= 0){
+            right++;
+        }
+        return Math.max(left + 1,n - right);
+    }
+
+    public int findTheDistanceValue(int[] arr1, int[] arr2, int d) {
+        Arrays.sort(arr2);
+        int ans = 0;
+        for (int x : arr1){
+            if (!findTheDistance(arr2, x - d, x + d)){
+                ans++;
+            }
+        }
+        return ans;
+    }
+    public boolean findTheDistance(int[] arr, int low, int high){
+        int left = 0, right = arr.length - 1, mid;
+        while (left <= right){
+            mid = (right - left) / 2 + left;
+            if (arr[mid] >= low && arr[mid] <= high){
+                return true;
+            }else if (arr[mid] < low){
+                left = mid + 1;
+            }else if (arr[mid] > high){
+                right = mid - 1;
+            }
+        }
+        return false;
+    }
+
+    public int[] successfulPairs(int[] spells, int[] potions, long success) {
 
     }
 }
