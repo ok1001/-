@@ -12,15 +12,50 @@ import java.util.*;
 public class slidingWindow {
     public static void main(String[] args) {
         slidingWindowSoultion sliding = new slidingWindowSoultion();
-        int [] nums = {4,-3,-7,0,-10};
-        int [] nums2 = {10};
+        int [] nums = {3,1,2};
+        int [] nums2 = {8,5,8};
         String s = "WWWEQRQEWWQQQWQQQWEWEEWRRRRRWWQE";
-        sliding.findTheDistanceValue(nums, nums2, 69);
+        String[] strList1 = {"bba","abaaaaaa","aaaaaa","bbabbabaab","aba","aa","baab","bbbbbb","aab","bbabbaabb"};
+        String[] strList2 = {"aaabbb","aab","babbab","babbbb","b","bbbbbbbbab","a","bbbbbbbbbb","baaabbaab","aa"};
+        sliding.numSmallerByFrequency(strList1, strList2);
 
     }
 
 }
 
+class RangeFreqQuery {
+    private final HashMap<Integer, List<Integer>> queryMap = new HashMap<>();
+    public RangeFreqQuery(int[] arr) {
+        for (int i = 0; i < arr.length; i++){
+            queryMap.computeIfAbsent(arr[i], k -> new ArrayList<>()).add(i);
+        }
+    }
+
+    public int query(int left, int right, int value) {
+        List<Integer> flag = queryMap.get(value);
+        if(flag == null){
+            return 0;
+        }
+        return lowerBound(flag, right + 1) - lowerBound(flag, left);
+    }
+    private int lowerBound(List<Integer> a, int target){
+        //开区间(left, right)
+        int left = -1;
+        int right = a.size();
+        while (left + 1 < right){   //区间不为空
+            //循环不变量
+            // a[left] < target
+            // a[right] >= target
+            int mid = (left + right) >>> 1;
+            if (a.get(mid) < target){
+                left = mid;     //范围缩小至(mid, right)
+            }else {
+                right = mid;     //范围缩小至(left, mid)
+            }
+        }
+        return right;           //right 是最小满足a[right] >= target
+    }
+}
 class slidingWindowSoultion{
     /**
      *  1456. 定长子串中元音的最大数目
@@ -1100,6 +1135,105 @@ class slidingWindowSoultion{
     }
 
     public int[] successfulPairs(int[] spells, int[] potions, long success) {
+        Arrays.sort(potions);
+        int n = spells.length, m = potions.length;
+        int[] ans = new int[n];
+        for (int i = 0; i < n;i++){
+            int left = 0, right = m - 1, mid = (right - left) / 2 + left;
+            while (left <= right){
+                mid = (right - left) / 2 + left;
+                if ((long) potions[mid] * spells[i] < success){
+                    left = mid + 1;
+                }
+                if ((long) potions[mid] * spells[i] >= success){
+                    right = mid - 1;
+                }
+            }
+            ans[i] = m - left;
+        }
+        return ans;
+    }
 
+    public int[] answerQueries(int[] nums, int[] queries) {
+        Arrays.sort(nums);
+        int n = nums.length, m = queries.length;
+        int[] ans = new int[m];
+        for (int i = 1; i < n; i++){
+            nums[i] += nums[i - 1];
+        }
+        for (int i = 0; i < m; i++){
+            int flag = queries[i];
+            int left = 0, right = n - 1, mid = (right - left) / 2 + left;
+            while (left < right){
+                mid = (right - left) / 2 + left;
+                if (nums[mid] > flag){
+                    right = mid - 1;
+                }else {
+                    left = mid + 1;
+                }
+            }
+            ans[i] = left;
+        }
+        return ans;
+    }
+
+    public int[] numSmallerByFrequency(String[] queries, String[] words) {
+        int n = queries.length, m = words.length;
+        int[] tmp = new int[m];
+        int[] tmp2 = new int[n];
+        for (int i = 0; i < m; i++){
+            char[] charArray = words[i].toCharArray();
+            Arrays.sort(charArray);
+            int val = 1;
+            for (;val < charArray.length;){
+                if (charArray[val - 1] == charArray[val])val++;
+                else break;
+            }
+            tmp[i] = val;
+        }
+        for (int i = 0; i < n; i++){
+            char[] charArray = queries[i].toCharArray();
+            Arrays.sort(charArray);
+            int val = 1;
+            for (;val < charArray.length;){
+                if (charArray[val] == charArray[val - 1])val++;
+                else break;
+            }
+            tmp2[i] = val;
+        }
+        Arrays.sort(tmp2);
+        for (int i = 0; i < n; i++){
+            int l = 0, r = m - 1, mid = (r - l) / 2 + l;
+            while (l <= r){
+                mid = (r - l) / 2 + l;
+                if (tmp[mid] > tmp2[i]){
+                    r = mid - 1;
+                }else{
+                    l = mid + 1;
+                }
+            }
+            tmp2[i] = m - l;
+        }
+        return tmp2;
+    }
+
+    public int minLengthAfterRemovals(List<Integer> nums) {
+        int n = nums.size();
+        int x = nums.get(n / 2);
+        int maxCount = dichotomyRemovals(nums, x + 1) - dichotomyRemovals(nums, x);
+        return Math.max(maxCount * 2 - n, n % 2);
+    }
+    public int dichotomyRemovals(List<Integer> nums, int x){
+        int n = nums.size();
+        int left = 0, right = n - 1, mid = (right - left) / 2 + left;
+        while (left <= right){
+            mid = (right - left) / 2 + left;
+            if (nums.get(mid) < x){
+                left = mid + 1;
+            }else {
+                right = mid - 1;
+            }
+        }
+        return left;
     }
 }
